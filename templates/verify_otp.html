@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Verify Your Email</h1>
+        <div id="loader" class="loader"></div>
+        <p style="text-align: center; margin-bottom: 2rem;">
+            Please enter the verification code sent to your email
+        </p>
+        <form id="verifyForm">
+            <div class="form-group">
+                <label for="otp">Verification Code</label>
+                <input type="text" id="otp" name="otp" maxlength="6" pattern="\d{6}" required>
+            </div>
+            <button type="submit">Verify Email</button>
+            <div id="error" class="error hidden"></div>
+            <div id="success" class="success hidden"></div>
+        </form>
+        <div class="resend-otp">
+            <button id="resendButton" disabled>Resend Code</button>
+            <div id="timer" class="timer">60s</div>
+        </div>
+        <p style="text-align: center; margin-top: 1rem;">
+            <a href="/">Back to Login</a>
+        </p>
+    </div>
+
+    <script>
+        // Get email from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+
+        // Timer functionality
+        let timeLeft = 60;
+        const timerDiv = document.getElementById('timer');
+        const resendButton = document.getElementById('resendButton');
+
+        function updateTimer() {
+            timerDiv.textContent = `${timeLeft}s`;
+            if (timeLeft > 0) {
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                resendButton.disabled = false;
+                timerDiv.textContent = '';
+            }
+        }
+
+        updateTimer();
+
+        // Form submission
+        document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            
+            const formData = {
+                email: email,
+                otp: document.getElementById('otp').value
+            };
+            
+            try {
+                showLoader();
+                const response = await fetch('/verify-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': localStorage.getItem('csrf_token') || ''
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+                hideLoader();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Verification failed');
+                }
+                successDiv.textContent = 'Email verified successfully! Redirecting to login...';
+                successDiv.className = 'success';
+                
+                // Redirect to login page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+
+            } catch (error) {
+                hideLoader();
+                errorDiv.textContent = error.message;
+                errorDiv.className = 'error';
+            }
+        });
+
+        // Resend OTP
+        document.getElementById('resendButton').addEventListener('click', async () => {
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            
+            try {
+                showLoader();
+                const response = await fetch(`/resend-otp?email=${encodeURIComponent(email)}`, {
+                    headers: {
+                        'X-CSRF-Token': localStorage.getItem('csrf_token') || ''
+                    }
+                });
+                const data = await response.json();
+                hideLoader();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to resend OTP');
+                }
+                successDiv.textContent = 'OTP resent successfully!';
+                successDiv.className = 'success';
+                
+                // Reset timer
+                timeLeft = 60;
+                resendButton.disabled = true;
+                updateTimer();
+
+            } catch (error) {
+                hideLoader();
+                errorDiv.textContent = error.message;
+                errorDiv.className = 'error';
+            }
+        });
+
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+    </script>
+</body>
+</html> 

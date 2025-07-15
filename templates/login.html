@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <div id="loader" class="loader"></div>
+        <form id="loginForm">
+            <div class="form-group" id="loginFields">
+                <label for="username">Username or Email</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <label for="captcha">CAPTCHA: <span id="captchaText"></span></label>
+                <input type="number" id="captcha" name="captcha" required>
+                <button type="button" id="refreshCaptcha" class="refresh-captcha">↻</button>
+            </div>
+            <div id="otpSection" style="display:none;">
+                <label for="otp">Enter OTP sent to your email</label>
+                <input type="text" id="otp" name="otp" maxlength="6" pattern="\d{6}">
+                <button type="button" id="verifyOtpBtn">Verify OTP</button>
+                <div class="resend-otp">
+                    <button type="button" id="resendOtpBtn" disabled>Resend OTP</button>
+                    <span id="otpTimer">60s</span>
+                </div>
+            </div>
+            <button type="submit" id="loginBtn">Login</button>
+            <div id="error" class="error hidden"></div>
+            <div id="success" class="success hidden"></div>
+        </form>
+        <p style="text-align: center; margin-top: 1rem;">
+            <a href="/forgot-password">Forgot Password?</a>
+        </p>
+        <p style="text-align: center; margin-top: 1rem;">
+            Don't have an account? <a href="/register">Register here</a>
+        </p>
+    </div>
+
+    <script>
+        // Password toggle function
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            const svg = button.querySelector('svg');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                svg.innerHTML = `
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                `;
+            } else {
+                input.type = 'password';
+                svg.innerHTML = `
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                `;
+            }
+        }
+
+        // Generate random CAPTCHA
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 10);
+            const num2 = Math.floor(Math.random() * 10);
+            const captchaText = `${num1} + ${num2}`;
+            document.getElementById('captchaText').textContent = captchaText;
+            return num1 + num2;
+        }
+
+        let correctCaptchaAnswer = generateCaptcha();
+
+        // Add refresh button functionality
+        document.getElementById('refreshCaptcha').addEventListener('click', () => {
+            correctCaptchaAnswer = generateCaptcha();
+        });
+
+        // Inline OTP logic
+        let loginEmail = null;
+        let otpCooldown = 60;
+        let otpTimerInterval = null;
+
+        function startOtpTimer() {
+            const otpTimer = document.getElementById('otpTimer');
+            const resendBtn = document.getElementById('resendOtpBtn');
+            resendBtn.disabled = true;
+            otpCooldown = 60;
+            otpTimer.textContent = otpCooldown + 's';
+            if (otpTimerInterval) clearInterval(otpTimerInterval);
+            otpTimerInterval = setInterval(() => {
+                otpCooldown--;
+                otpTimer.textContent = otpCooldown + 's';
+                if (otpCooldown <= 0) {
+                    clearInterval(otpTimerInterval);
+                    resendBtn.disabled = false;
+                    otpTimer.textContent = '';
+                }
+            }, 1000);
+        }
+
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            errorDiv.className = 'error hidden';
+            successDiv.className = 'success hidden';
+            if (document.getElementById('otpSection').style.display !== 'none') return;
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                captcha: parseInt(document.getElementById('captcha').value)
+            };
+            if (formData.captcha !== correctCaptchaAnswer) {
+                errorDiv.textContent = 'Invalid CAPTCHA answer';
+                errorDiv.className = 'error';
+                correctCaptchaAnswer = generateCaptcha();
+                return;
+            }
+            try {
+                showLoader();
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': localStorage.getItem('csrf_token') || ''
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+                hideLoader();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                document.getElementById('loginFields').style.display = 'none';
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('otpSection').style.display = '';
+                document.getElementById('otp').setAttribute('required', 'required');
+                loginEmail = data.email || formData.username;
+                successDiv.textContent = 'OTP sent to your email. Please enter it below.';
+                successDiv.className = 'success';
+                startOtpTimer();
+            } catch (error) {
+                hideLoader();
+                errorDiv.textContent = error.message;
+                errorDiv.className = 'error';
+                correctCaptchaAnswer = generateCaptcha();
+            }
+        });
+
+        document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            errorDiv.className = 'error hidden';
+            successDiv.className = 'success hidden';
+            const otp = document.getElementById('otp').value;
+            if (!otp || !loginEmail) {
+                errorDiv.textContent = 'Missing OTP or email.';
+                errorDiv.className = 'error';
+                return;
+            }
+            try {
+                showLoader();
+                const response = await fetch('/login-verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': localStorage.getItem('csrf_token') || ''
+                    },
+                    body: JSON.stringify({ email: loginEmail, otp })
+                });
+                const data = await response.json();
+                hideLoader();
+                if (!response.ok) {
+                    throw new Error(data.error || 'OTP verification failed');
+                }
+                if (data.csrf_token) {
+                    localStorage.setItem('csrf_token', data.csrf_token);
+                }
+                localStorage.setItem('token', data.token);
+                successDiv.textContent = 'Login successful! Redirecting...';
+                successDiv.className = 'success';
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+            } catch (error) {
+                hideLoader();
+                errorDiv.textContent = error.message;
+                errorDiv.className = 'error';
+            }
+        });
+
+        document.getElementById('resendOtpBtn').addEventListener('click', async () => {
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            errorDiv.className = 'error hidden';
+            successDiv.className = 'success hidden';
+            if (!loginEmail) {
+                errorDiv.textContent = 'Missing email.';
+                errorDiv.className = 'error';
+                return;
+            }
+            try {
+                showLoader();
+                const response = await fetch(`/resend-otp?email=${encodeURIComponent(loginEmail)}`);
+                const data = await response.json();
+                hideLoader();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to resend OTP');
+                }
+                successDiv.textContent = 'OTP resent successfully!';
+                successDiv.className = 'success';
+                startOtpTimer();
+            } catch (error) {
+                hideLoader();
+                errorDiv.textContent = error.message;
+                errorDiv.className = 'error';
+            }
+        });
+    </script>
+</body>
+</html> 

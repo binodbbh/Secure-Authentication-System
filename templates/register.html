@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Account</h1>
+        <div id="loader" class="loader"></div>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <div class="password-strength-container">
+                    <div class="strength-meter">
+                        <div class="strength-meter-fill" data-strength="0"></div>
+                    </div>
+                    <div class="strength-text">Password Strength: <span id="strength-text">None</span></div>
+                </div>
+                <!-- Password criteria checklist -->
+                <ul id="password-criteria-list" style="list-style: none; padding-left: 0; margin-top: 10px;">
+                    <li id="criteria-length" style="color: #ff4d4d;"><span>✗</span> At least 8 characters</li>
+                    <li id="criteria-uppercase" style="color: #ff4d4d;"><span>✗</span> At least one uppercase letter</li>
+                    <li id="criteria-lowercase" style="color: #ff4d4d;"><span>✗</span> At least one lowercase letter</li>
+                    <li id="criteria-number" style="color: #ff4d4d;"><span>✗</span> At least one number</li>
+                    <li id="criteria-special" style="color: #ff4d4d;"><span>✗</span> At least one special character (e.g., !@#$%^&*)</li>
+                </ul>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <div class="password-container">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="captcha">CAPTCHA</label>
+                <div class="captcha-container">
+                    <span id="captchaText" class="captcha-text"></span>
+                    <input type="number" id="captcha" name="captcha" required>
+                    <button type="button" id="refreshCaptcha" class="refresh-captcha">↻</button>
+                </div>
+            </div>
+            <button type="submit">Register</button>
+            <div id="error" class="error hidden"></div>
+            <div id="success" class="success hidden"></div>
+        </form>
+        <p style="text-align: center; margin-top: 1rem;">
+            Already have an account? <a href="/">Login here</a>
+        </p>
+    </div>
+
+    <script>
+        // Password toggle function
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling;
+            const svg = button.querySelector('svg');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                svg.innerHTML = `
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                `;
+            } else {
+                input.type = 'password';
+                svg.innerHTML = `
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                `;
+            }
+        }
+
+        // Generate random CAPTCHA
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 10);
+            const num2 = Math.floor(Math.random() * 10);
+            const captchaText = `${num1} + ${num2}`;
+            document.getElementById('captchaText').textContent = captchaText;
+            return num1 + num2;
+        }
+
+        let correctCaptchaAnswer = generateCaptcha();
+
+        // refresh button functionality
+        document.getElementById('refreshCaptcha').addEventListener('click', () => {
+            correctCaptchaAnswer = generateCaptcha();
+        });
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            let feedback = [];
+
+            // Length check
+            if (password.length >= 8) {
+                strength += 1;
+            } else {
+                feedback.push("At least 8 characters");
+            }
+
+            // Uppercase check
+            if (/[A-Z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push("One uppercase letter");
+            }
+
+            // Lowercase check
+            if (/[a-z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push("One lowercase letter");
+            }
+
+            // Number check
+            if (/[0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push("One number");
+            }
+
+            // Special character check
+            if (/[^A-Za-z0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push("One special character");
+            }
+
+            // Update strength meter
+            const strengthMeter = document.querySelector('.strength-meter-fill');
+            const strengthText = document.getElementById('strength-text');
+            
+            strengthMeter.setAttribute('data-strength', strength);
+            
+            let strengthLabel = '';
+            let strengthColor = '';
+            
+            switch(strength) {
+                case 0:
+                case 1:
+                    strengthLabel = 'Very Weak';
+                    strengthColor = '#ff4d4d';
+                    break;
+                case 2:
+                    strengthLabel = 'Weak';
+                    strengthColor = '#ffa64d';
+                    break;
+                case 3:
+                    strengthLabel = 'Medium';
+                    strengthColor = '#ffff4d';
+                    break;
+                case 4:
+                    strengthLabel = 'Strong';
+                    strengthColor = '#4dff4d';
+                    break;
+                case 5:
+                    strengthLabel = 'Very Strong';
+                    strengthColor = '#00cc00';
+                    break;
+            }
+            
+            strengthMeter.style.width = `${(strength / 5) * 100}%`;
+            strengthMeter.style.backgroundColor = strengthColor;
+            strengthText.textContent = strengthLabel;
+            strengthText.style.color = strengthColor;
+
+            // Update password criteria checklist
+            updatePasswordCriteria(password);
+
+            return strength >= 4; // Consider password strong if it meets 4 or more criteria
+        }
+
+        // Live password criteria feedback
+        function updatePasswordCriteria(password) {
+            // Length
+            const lengthItem = document.getElementById('criteria-length');
+            if (password.length >= 8) {
+                lengthItem.style.color = '#00cc00';
+                lengthItem.querySelector('span').textContent = '✓';
+            } else {
+                lengthItem.style.color = '#ff4d4d';
+                lengthItem.querySelector('span').textContent = '✗';
+            }
+            // Uppercase
+            const upperItem = document.getElementById('criteria-uppercase');
+            if (/[A-Z]/.test(password)) {
+                upperItem.style.color = '#00cc00';
+                upperItem.querySelector('span').textContent = '✓';
+            } else {
+                upperItem.style.color = '#ff4d4d';
+                upperItem.querySelector('span').textContent = '✗';
+            }
+            // Lowercase
+            const lowerItem = document.getElementById('criteria-lowercase');
+            if (/[a-z]/.test(password)) {
+                lowerItem.style.color = '#00cc00';
+                lowerItem.querySelector('span').textContent = '✓';
+            } else {
+                lowerItem.style.color = '#ff4d4d';
+                lowerItem.querySelector('span').textContent = '✗';
+            }
+            // Number
+            const numberItem = document.getElementById('criteria-number');
+            if (/[0-9]/.test(password)) {
+                numberItem.style.color = '#00cc00';
+                numberItem.querySelector('span').textContent = '✓';
+            } else {
+                numberItem.style.color = '#ff4d4d';
+                numberItem.querySelector('span').textContent = '✗';
+            }
+            // Special character
+            const specialItem = document.getElementById('criteria-special');
+            if (/[^A-Za-z0-9]/.test(password)) {
+                specialItem.style.color = '#00cc00';
+                specialItem.querySelector('span').textContent = '✓';
+            } else {
+                specialItem.style.color = '#ff4d4d';
+                specialItem.querySelector('span').textContent = '✗';
+            }
+        }
+
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+        }
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // Form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            errorDiv.className = 'error hidden';
+            successDiv.className = 'success hidden';
+
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                confirmPassword: document.getElementById('confirmPassword').value,
+                captcha: parseInt(document.getElementById('captcha').value)
+            };
+
+            // Validate CAPTCHA
+            if (formData.captcha !== correctCaptchaAnswer) {
+                errorDiv.textContent = 'Invalid CAPTCHA answer';
+                errorDiv.className = 'error';
+                correctCaptchaAnswer = generateCaptcha();
+                return;
+            }
+
+            // Validate password strength
+            if (!checkPasswordStrength(formData.password)) {
+                errorDiv.textContent = 'Please use a stronger password';
+                errorDiv.className = 'error';
+                return;
+            }
+
+            try {
+                showLoader();
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': localStorage.getItem('csrf_token') || ''
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+                hideLoader();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+                successDiv.textContent = data.message;
+                successDiv.className = 'success';
+                
+                // Redirect to OTP verification page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = `/verify-otp?email=${encodeURIComponent(formData.email)}`;
+                }, 2000);
+
+            } catch (error) {
+                hideLoader();
+                errorDiv.textContent = error.message;
+                errorDiv.className = 'error';
+                correctCaptchaAnswer = generateCaptcha();
+            }
+        });
+
+        // Attach input event to password field
+        document.getElementById('password').addEventListener('input', function(e) {
+            checkPasswordStrength(e.target.value);
+        });
+
+        // Password confirmation check
+        document.getElementById('confirmPassword').addEventListener('input', (e) => {
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+            
+            if (e.target.value !== password) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.className = 'error';
+            } else {
+                errorDiv.className = 'error hidden';
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,356 @@
+:root {
+    --primary-color: #4a90e2;
+    --error-color: #e74c3c;
+    --success-color: #2ecc71;
+    --text-color: #333;
+    --border-color: #ddd;
+    --background-color: #f5f6fa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.container {
+    max-width: 520px;
+    min-height: unset;
+    padding: 1.2rem 2.5rem;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 1.5px solid #e3eaf3;
+    box-shadow: 0 4px 32px rgba(74, 144, 226, 0.08);
+    background: #fff;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+}
+
+.form-group {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-shadow: 0 1px 2px rgba(74, 144, 226, 0.04);
+    background: #fafdff;
+}
+
+input:focus {
+    outline: none;
+    border-color: #357abd;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.15);
+    background: #fff;
+}
+
+button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #357abd;
+}
+
+button:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+}
+
+.error {
+    color: var(--error-color);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.success {
+    color: var(--success-color);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.password-strength {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.password-strength.weak {
+    color: var(--error-color);
+}
+
+.password-strength.medium {
+    color: #f39c12;
+}
+
+.password-strength.strong {
+    color: var(--success-color);
+}
+
+.captcha-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.captcha-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    min-width: 80px;
+}
+
+.refresh-captcha {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    color: #666;
+    transition: color 0.3s;
+    width: auto;
+}
+
+.refresh-captcha:hover {
+    color: #333;
+}
+
+#captcha {
+    width: 80px;
+}
+
+.resend-otp {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.resend-otp button {
+    background: none;
+    color: var(--primary-color);
+    text-decoration: underline;
+    padding: 0;
+    width: auto;
+}
+
+.resend-otp button:disabled {
+    color: var(--border-color);
+    text-decoration: none;
+}
+
+.timer {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.hidden {
+    display: none;
+}
+
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: #666;
+    transition: color 0.3s;
+    width: auto;
+}
+
+.password-toggle:hover {
+    color: #333;
+}
+
+.password-toggle:focus {
+    outline: none;
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-header {
+    padding: 1rem 2rem;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.logout-container {
+    display: flex;
+    align-items: center;
+}
+
+.logout-btn {
+    padding: 0.5rem 1rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+.dashboard-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.dashboard-content h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.dashboard-content p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* Password Strength Meter */
+.password-strength-container {
+    margin-top: 0.5rem;
+}
+
+.strength-meter {
+    height: 5px;
+    background-color: #eee;
+    border-radius: 3px;
+    margin-bottom: 0.5rem;
+}
+
+.strength-meter-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.strength-text {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+#strength-text {
+    font-weight: 600;
+}
+
+/* --- Enhanced Password Criteria Checklist --- */
+#password-criteria-list {
+    margin-top: 12px;
+    margin-bottom: 0.5rem;
+    padding-left: 0;
+    list-style: none;
+}
+#password-criteria-list li {
+    display: flex;
+    align-items: center;
+    font-size: 0.97em;
+    margin-bottom: 4px;
+    transition: color 0.3s;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+#password-criteria-list li span {
+    display: inline-block;
+    width: 1.5em;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-right: 6px;
+    transition: color 0.3s;
+}
+
+/* --- Enhanced Register Button --- */
+button[type="submit"] {
+    background: linear-gradient(90deg, #4a90e2 0%, #357abd 100%);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.08);
+    transition: background 0.3s, box-shadow 0.3s;
+}
+button[type="submit"]:hover {
+    background: linear-gradient(90deg, #357abd 0%, #4a90e2 100%);
+    box-shadow: 0 4px 16px rgba(74, 144, 226, 0.13);
+}
+
+/* --- Responsive Tweaks --- */
+@media (max-width: 600px) {
+    .container {
+        max-width: 98vw;
+        padding: 0.7rem 0.5rem;
+    }
+    h1 {
+        font-size: 1.5rem;
+    }
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+    button {
+        font-size: 0.98rem;
+        padding: 0.6rem;
+    }
+} 
